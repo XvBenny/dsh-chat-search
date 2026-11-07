@@ -1,0 +1,37 @@
+{
+  "name": "dsh-chat-search",
+  "version": "0.2.0",
+  "description": "Full-text search across DSH conversation history, with click-to-jump results in the Web GUI.",
+  "type": "module",
+  "main": "lib/index.js",
+  "exports": {
+    ".": "./lib/index.js",
+    "./client": "./client.js",
+    "./package.json": "./package.json"
+  },
+  "dsh": {
+    "bundle": {
+      "patch": "./cordis.patch.yml"
+    },
+    "client": {
+      "platform": "web"
+    }
+  },
+  "files": [
+    "lib/index.js",
+    "client.js",
+    "cordis.patch.yml",
+    "README.md",
+    "README.zh.md",
+    "LICENSE"
+  ],
+  "keywords": [
+    "deepseek-harness",
+    "dsh",
+    "dsh-plugin",
+    "search",
+    "session",
+    "chat-history"
+  ],
+  "license": "MIT"
+}
