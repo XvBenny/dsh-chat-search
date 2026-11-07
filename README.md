@@ -20,7 +20,7 @@ matching session at the matching message.
 ## Install
 
 ```bash
-dsh plugin --profile desktop add github:<your-user>/dsh-chat-search
+dsh plugin --profile desktop add https://gitee.com/vrgu/dsh-chat-search.git
 ```
 
 or from a local checkout:
