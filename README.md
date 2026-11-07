@@ -33,8 +33,8 @@ Restart DSH after installing.
 
 ## Use
 
-1. Open the right sidebar and click the magnifier icon of the **对话搜索 /
-   Chat Search** panel.
+1. Press `Ctrl+F` (`Cmd+F` on macOS) anywhere in the DSH Web GUI, or click the
+   magnifier icon of the **对话搜索 / Chat Search** panel in the right sidebar.
 2. Type a keyword and press Enter.
 3. Click any hit to jump to that message.
 

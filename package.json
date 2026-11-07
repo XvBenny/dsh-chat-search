@@ -1,6 +1,6 @@
 {
   "name": "dsh-chat-search",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Full-text search across DSH conversation history, with click-to-jump results in the Web GUI.",
   "type": "module",
   "main": "lib/index.js",

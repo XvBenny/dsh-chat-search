@@ -1,8 +1,8 @@
 /**
  * dsh-chat-search — browser half.
  *
- * A right-sidebar magnifier opens a centered search dialog over full
- * conversation history. Clicking a hit opens the target session through the
+ * A right-sidebar magnifier plus a global Ctrl/Cmd+F shortcut open a centered
+ * full-text search dialog. Clicking a hit opens the target session through the
  * harness UI service (`uiWorkspace.openSession`, with `unarchiveSession` for
  * archived sessions) and then scrolls to and flashes the matching message.
  *
@@ -16,9 +16,14 @@ window.__ModuleLoader__.load({
     Object.defineProperty(exports, Symbol.toStringTag, { value: "Module" });
 
     var react = require("react");
+    var reactDom = null;
+    try { reactDom = require("react-dom/client"); } catch (e) {
+      try { reactDom = require("react-dom"); } catch (e2) { reactDom = null; }
+    }
     var h = react.createElement;
     var inject = ["slots"];
     var services = null;
+    var globalOpen = null;
 
     var CSS = [
       ".cs-root{display:flex;flex-direction:column;gap:10px;height:100%;min-height:0;padding:16px;box-sizing:border-box;font-size:13px;color:var(--dsw-alias-label-primary)}",
@@ -37,7 +42,6 @@ window.__ModuleLoader__.load({
       ".cs-hit:hover{background:var(--dsw-alias-bg-layer-3,rgba(255,255,255,.06))}",
       ".cs-cat{color:var(--dsw-alias-label-tertiary);font-size:10px;margin-right:6px;text-transform:uppercase}",
       ".cs-mark{background:rgba(77,107,254,.25);color:inherit;border-radius:3px;padding:0 2px}",
-      ".cs-collapsed{display:flex;align-items:center;justify-content:center;padding:18px 0}",
       ".cs-overlay{position:fixed;inset:0;z-index:9999;background:rgba(0,0,0,.45);display:flex;align-items:flex-start;justify-content:center;padding:12vh 16px 16px;box-sizing:border-box}",
       ".cs-modal{width:min(720px,94vw);max-height:72vh;display:flex;flex-direction:column;background:var(--dsw-alias-bg-layer-2,#1b1f27);border:1px solid var(--dsw-alias-border-l2);border-radius:14px;box-shadow:0 24px 70px rgba(0,0,0,.45);overflow:hidden;color:var(--dsw-alias-label-primary)}",
       ".cs-head{display:flex;align-items:center;justify-content:space-between;flex:none}",
@@ -45,6 +49,7 @@ window.__ModuleLoader__.load({
       ".cs-collapse{border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-size:16px;line-height:1;cursor:pointer;padding:0 4px}",
       ".cs-iconbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary,var(--dsw-alias-label-primary));cursor:pointer;display:flex;align-items:center;justify-content:center}",
       ".cs-iconbtn:hover{border-color:var(--dsw-alias-state-business-primary,#3964fe);color:var(--dsw-alias-state-business-primary,#3964fe)}",
+      ".cs-panel{display:flex;align-items:center;justify-content:center;padding:18px 0}",
       ".cs-target{outline:2px solid var(--dsw-alias-state-business-primary,#3964fe)!important;outline-offset:2px;border-radius:6px}",
     ].join("");
 
@@ -187,7 +192,7 @@ window.__ModuleLoader__.load({
       return true;
     }
 
-    function SearchPanel() {
+    function SearchDialog(props) {
       var qState = react.useState("");
       var q = qState[0], setQ = qState[1];
       var sState = react.useState("");
@@ -198,8 +203,12 @@ window.__ModuleLoader__.load({
       var busy = bState[0], setBusy = bState[1];
       var lqState = react.useState("");
       var lastQuery = lqState[0], setLastQuery = lqState[1];
-      var eState = react.useState(false);
-      var expanded = eState[0], setExpanded = eState[1];
+      var close = props.onClose || function () {};
+
+      react.useEffect(function () {
+        var el = document.getElementById("dsh-chat-search-input");
+        if (el) { try { el.focus(); el.select(); } catch { /* ignore */ } }
+      }, []);
 
       function run() {
         var query = String(q || "").trim();
@@ -233,29 +242,9 @@ window.__ModuleLoader__.load({
       function jump(sessionId, hit) {
         setStatus("正在打开对话…");
         jumpToHit(sessionId, hit, lastQuery).then(function (ok) {
-          if (ok) setExpanded(false);
+          if (ok) close();
           else setStatus("已打开对话，但没能定位到那条消息。可能消息还在加载，再点一次试试。");
         });
-      }
-
-      if (!expanded) {
-        return h("div", { className: "cs-collapsed" },
-          h("button", {
-            className: "cs-iconbtn",
-            type: "button",
-            title: "搜索对话内容",
-            onClick: function () { setExpanded(true); },
-          },
-            h("svg", {
-              width: 20, height: 20, viewBox: "0 0 24 24",
-              fill: "none", stroke: "currentColor", strokeWidth: 2,
-              strokeLinecap: "round",
-            },
-              h("circle", { cx: 11, cy: 11, r: 7 }),
-              h("line", { x1: 16.5, y1: 16.5, x2: 21, y2: 21 })
-            )
-          )
-        );
       }
 
       var body = h("div", { className: "cs-root" },
@@ -265,17 +254,21 @@ window.__ModuleLoader__.load({
             className: "cs-collapse",
             type: "button",
             title: "关闭",
-            onClick: function () { setExpanded(false); },
+            onClick: close,
           }, "×")
         ),
         h("div", { className: "cs-bar" },
           h("input", {
+            id: "dsh-chat-search-input",
             className: "cs-input",
             type: "search",
             value: q,
             placeholder: "搜索全部对话，点结果跳转…",
             onChange: function (e) { setQ(e.target.value); },
-            onKeyDown: function (e) { if (e.key === "Enter") run(); },
+            onKeyDown: function (e) {
+              if (e.key === "Enter") run();
+              if (e.key === "Escape") close();
+            },
           }),
           h("button", { className: "cs-btn", type: "button", disabled: busy, onClick: run }, busy ? "…" : "搜索")
         ),
@@ -307,8 +300,39 @@ window.__ModuleLoader__.load({
 
       return h("div", {
         className: "cs-overlay",
-        onClick: function (e) { if (e.target === e.currentTarget) setExpanded(false); },
+        onClick: function (e) { if (e.target === e.currentTarget) close(); },
       }, h("div", { className: "cs-modal" }, body));
+    }
+
+    function GlobalSearch() {
+      var openState = react.useState(false);
+      var isOpen = openState[0], setOpen = openState[1];
+      react.useEffect(function () {
+        globalOpen = function () { setOpen(true); };
+        return function () { globalOpen = null; };
+      }, []);
+      if (!isOpen) return null;
+      return h(SearchDialog, { onClose: function () { setOpen(false); } });
+    }
+
+    function MagnifierButton() {
+      return h("div", { className: "cs-panel" },
+        h("button", {
+          className: "cs-iconbtn",
+          type: "button",
+          title: "搜索对话内容（Ctrl+F）",
+          onClick: function () { if (globalOpen) globalOpen(); },
+        },
+          h("svg", {
+            width: 20, height: 20, viewBox: "0 0 24 24",
+            fill: "none", stroke: "currentColor", strokeWidth: 2,
+            strokeLinecap: "round",
+          },
+            h("circle", { cx: 11, cy: 11, r: 7 }),
+            h("line", { x1: 16.5, y1: 16.5, x2: 21, y2: 21 })
+          )
+        )
+      );
     }
 
     function apply(ctx) {
@@ -331,9 +355,39 @@ window.__ModuleLoader__.load({
             order: 30,
             label: function () { return "对话搜索"; },
           },
-          SearchPanel,
+          MagnifierButton,
         );
       });
+
+      ctx.effect(function () {
+        var host = document.createElement("div");
+        host.id = "dsh-chat-search-root";
+        document.body.appendChild(host);
+        var root = null;
+        try {
+          if (reactDom && typeof reactDom.createRoot === "function") root = reactDom.createRoot(host);
+          else if (reactDom && typeof reactDom.render === "function") reactDom.render(h(GlobalSearch), host);
+        } catch (e) {
+          root = null;
+        }
+        if (root) root.render(h(GlobalSearch));
+
+        function onKeyDown(e) {
+          if ((e.ctrlKey || e.metaKey) && !e.shiftKey && !e.altKey &&
+              (e.key === "f" || e.key === "F")) {
+            e.preventDefault();
+            e.stopPropagation();
+            if (globalOpen) globalOpen();
+          }
+        }
+        document.addEventListener("keydown", onKeyDown, true);
+
+        return function () {
+          document.removeEventListener("keydown", onKeyDown, true);
+          try { if (root) root.unmount(); else if (reactDom && reactDom.unmountComponentAtNode) reactDom.unmountComponentAtNode(host); } catch { /* ignore */ }
+          try { host.remove(); } catch { /* ignore */ }
+        };
+      }, "dsh-chat-search: global dialog and Ctrl+F");
     }
 
     exports.apply = apply;

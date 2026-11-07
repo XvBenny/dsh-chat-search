@@ -30,7 +30,7 @@ dsh plugin --profile desktop add ./dsh-chat-search
 
 ## 使用
 
-1. 打开右侧边栏，点「对话搜索」面板的放大镜图标
+1. 在 DSH Web 界面里直接按 `Ctrl+F`（macOS 是 `Cmd+F`），或点右侧边栏「对话搜索」面板的放大镜图标
 2. 输入关键词，回车
 3. 点任意一条结果，直接跳过去
 
