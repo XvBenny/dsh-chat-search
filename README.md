@@ -20,6 +20,10 @@ matching session at the matching message.
 ## Install
 
 ```bash
+# GitHub
+dsh plugin --profile desktop add github:XvBenny/dsh-chat-search
+
+# Gitee mirror (faster in mainland China)
 dsh plugin --profile desktop add https://gitee.com/vrgu/dsh-chat-search.git
 ```
 

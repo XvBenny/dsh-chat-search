@@ -17,6 +17,10 @@ DSH 自带的 `Ctrl+K` 只过滤**会话标题**。这个插件搜的是**完整
 ## 安装
 
 ```bash
+# GitHub
+dsh plugin --profile desktop add github:XvBenny/dsh-chat-search
+
+# Gitee 镜像（国内更快）
 dsh plugin --profile desktop add https://gitee.com/vrgu/dsh-chat-search.git
 ```
 
