@@ -47,9 +47,6 @@ window.__ModuleLoader__.load({
       ".cs-head{display:flex;align-items:center;justify-content:space-between;flex:none}",
       ".cs-head-title{font-size:13px;font-weight:600}",
       ".cs-collapse{border:none;background:transparent;color:var(--dsw-alias-label-tertiary);font-size:16px;line-height:1;cursor:pointer;padding:0 4px}",
-      ".cs-iconbtn{width:40px;height:40px;border-radius:10px;border:1px solid var(--dsw-alias-border-l2);background:var(--dsw-alias-bg-layer-3);color:var(--dsw-alias-label-secondary,var(--dsw-alias-label-primary));cursor:pointer;display:flex;align-items:center;justify-content:center}",
-      ".cs-iconbtn:hover{border-color:var(--dsw-alias-state-business-primary,#3964fe);color:var(--dsw-alias-state-business-primary,#3964fe)}",
-      ".cs-panel{display:flex;align-items:center;justify-content:center;padding:18px 0}",
       ".cs-target{outline:2px solid var(--dsw-alias-state-business-primary,#3964fe)!important;outline-offset:2px;border-radius:6px}",
     ].join("");
 
@@ -315,24 +312,49 @@ window.__ModuleLoader__.load({
       return h(SearchDialog, { onClose: function () { setOpen(false); } });
     }
 
+    var BUTTON_STYLE = {
+      display: "inline-flex",
+      alignItems: "center",
+      justifyContent: "center",
+      width: 28,
+      height: 28,
+      padding: 0,
+      border: "none",
+      borderRadius: 6,
+      background: "transparent",
+      color: "inherit",
+      cursor: "pointer",
+      opacity: 0.75,
+    };
+
     function MagnifierButton() {
-      return h("div", { className: "cs-panel" },
-        h("button", {
-          className: "cs-iconbtn",
-          type: "button",
-          title: "搜索对话内容（Ctrl+F）",
-          onClick: function () { if (globalOpen) globalOpen(); },
-        },
-          h("svg", {
-            width: 20, height: 20, viewBox: "0 0 24 24",
-            fill: "none", stroke: "currentColor", strokeWidth: 2,
-            strokeLinecap: "round",
-          },
-            h("circle", { cx: 11, cy: 11, r: 7 }),
-            h("line", { x1: 16.5, y1: 16.5, x2: 21, y2: 21 })
-          )
-        )
-      );
+      var hoverState = react.useState(false);
+      var hover = hoverState[0], setHover = hoverState[1];
+      var style = hover
+        ? { ...BUTTON_STYLE, opacity: 1, background: "var(--dsh-color-surface-hover, rgba(127,127,127,0.14))" }
+        : BUTTON_STYLE;
+      return h("button", {
+        type: "button",
+        title: "搜索对话内容（Ctrl+F）",
+        "aria-label": "对话搜索",
+        style: style,
+        onMouseEnter: function () { setHover(true); },
+        onMouseLeave: function () { setHover(false); },
+        onClick: function () { if (globalOpen) globalOpen(); },
+      }, h("svg", {
+        viewBox: "0 0 16 16",
+        width: 16,
+        height: 16,
+        fill: "none",
+        stroke: "currentColor",
+        strokeWidth: 1.4,
+        strokeLinecap: "round",
+        strokeLinejoin: "round",
+        "aria-hidden": true,
+      },
+        h("circle", { cx: 7, cy: 7, r: 4.2 }),
+        h("line", { x1: 10.2, y1: 10.2, x2: 13.5, y2: 13.5 })
+      ));
     }
 
     function apply(ctx) {
@@ -347,10 +369,10 @@ window.__ModuleLoader__.load({
           services = child;
         });
       }
-      ctx.slots.inject("sidebar.panellist", function () {
+      ctx.slots.inject("conversation.session.header.utilities", function () {
         return ctx.slots.register(
           {
-            name: "sidebar.panellist",
+            name: "conversation.session.header.utilities",
             id: "dsh-chat-search",
             order: 30,
             label: function () { return "对话搜索"; },
